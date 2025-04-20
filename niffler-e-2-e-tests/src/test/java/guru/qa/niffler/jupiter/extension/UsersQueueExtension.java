@@ -60,7 +60,7 @@ public class UsersQueueExtension implements
   @SuppressWarnings("unchecked")
   public void beforeTestExecution(ExtensionContext context) {
     Arrays.stream(context.getRequiredTestMethod().getParameters())
-      .filter(param -> AnnotationSupport.isAnnotated(param, UserType.class))
+      .filter(param -> AnnotationSupport.isAnnotated(param, UserType.class) && param.getType().isAssignableFrom(StaticUser.class))
       .map(param -> param.getAnnotation(UserType.class))
       .forEach(userType -> {
         Optional<StaticUser> user = Optional.empty();

@@ -1,54 +1,54 @@
 package guru.qa.niffler.jupiter.extension;
 
-import com.github.javafaker.Faker;
 import guru.qa.niffler.api.SpendApiClient;
-import guru.qa.niffler.jupiter.annotation.Category;
+import guru.qa.niffler.jupiter.annotation.User;
 import guru.qa.niffler.model.CategoryJson;
 import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.support.AnnotationSupport;
+
+import java.util.Optional;
+
+import static guru.qa.niffler.utils.RandomDataUtils.randomCategoryName;
 
 public class CategoryExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
   public static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(CategoryExtension.class);
   private final SpendApiClient spendApiClient = new SpendApiClient();
-  Faker faker = new Faker();
 
   @Override
   public void beforeEach(ExtensionContext context) {
-    AnnotationSupport.findAnnotation(context.getRequiredTestMethod(), Category.class)
-      .ifPresent(annotation -> {
-        CategoryJson categoryJson = new CategoryJson(
-          null,
-          faker.commerce().department(),
-          annotation.username(),
-          false
-        );
-        CategoryJson createdCategory = spendApiClient.addCategory(categoryJson);
-        if (annotation.archived()) {
-          CategoryJson archivedCategory = new CategoryJson(
-            createdCategory.id(),
-            createdCategory.name(),
-            createdCategory.username(),
-            true
+    AnnotationSupport.findAnnotation(context.getRequiredTestMethod(), User.class)
+      .ifPresent(user -> {
+        if (user.categories().length > 0) {
+          CategoryJson categoryJson = new CategoryJson(
+            null,
+            randomCategoryName(),
+            user.username(),
+            false
           );
-          createdCategory = spendApiClient.updateCategory(archivedCategory);
+          CategoryJson createdCategory = spendApiClient.addCategory(categoryJson);
+
+          if (user.categories()[0].archived()) {
+            CategoryJson archivedCategory = new CategoryJson(
+              createdCategory.id(),
+              createdCategory.name(),
+              createdCategory.username(),
+              true
+            );
+            createdCategory = spendApiClient.updateCategory(archivedCategory);
+          }
+          context.getStore(NAMESPACE).put(context.getUniqueId(), createdCategory);
         }
-        context.getStore(NAMESPACE).put(context.getUniqueId(), createdCategory);
       });
   }
 
   @Override
   public void afterTestExecution(ExtensionContext context) throws Exception {
-    CategoryJson category = context.getStore(CategoryExtension.NAMESPACE).get(context.getUniqueId(), CategoryJson.class);
-    if (!category.archived()) {
-      CategoryJson archivedCategory = new CategoryJson(
-        category.id(),
-        category.name(),
-        category.username(),
-        true
-      );
-      spendApiClient.updateCategory(archivedCategory);
-    }
+    Optional.ofNullable(context.getStore(NAMESPACE).get(context.getUniqueId(), CategoryJson.class))
+      .filter(category -> !category.archived())
+      .ifPresent(category -> spendApiClient.updateCategory(
+        new CategoryJson(category.id(), category.name(), category.username(), true)
+      ));
   }
 
   @Override

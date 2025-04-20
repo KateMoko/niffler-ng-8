@@ -1,6 +1,7 @@
 package guru.qa.niffler.test.web;
 
 import com.codeborne.selenide.Selenide;
+import guru.qa.niffler.jupiter.annotation.meta.WebTest;
 import guru.qa.niffler.jupiter.extension.BrowserExtension;
 import guru.qa.niffler.jupiter.extension.UsersQueueExtension;
 import guru.qa.niffler.jupiter.extension.UsersQueueExtension.UserType;
@@ -11,11 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static guru.qa.niffler.jupiter.extension.UsersQueueExtension.UserType.Type.*;
 
-@ExtendWith(BrowserExtension.class)
+@WebTest
 public class FriendsTest {
 
   @Test
-  @ExtendWith(UsersQueueExtension.class)
   void friendShouldBePresentInFriendsTable(@UserType(WITH_FRIEND) StaticUser user) {
     Selenide.open(LoginPage.URL, LoginPage.class)
       .doLogin(user.username(), user.password())
@@ -24,7 +24,6 @@ public class FriendsTest {
   }
 
   @Test
-  @ExtendWith(UsersQueueExtension.class)
   void friendsTableShouldBeEmptyForNewUser(@UserType(EMPTY) StaticUser user) {
     Selenide.open(LoginPage.URL, LoginPage.class)
       .doLogin(user.username(), user.password())
