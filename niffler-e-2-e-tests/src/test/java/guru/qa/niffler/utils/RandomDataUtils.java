@@ -22,7 +22,7 @@ public class RandomDataUtils {
   }
 
   public static String randomCategoryName() {
-    return faker.commerce().department();
+    return faker.commerce().productName();
   }
 
   public static String randomSentence(int wordsCount) {
