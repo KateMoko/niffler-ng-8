@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static java.sql.Connection.TRANSACTION_READ_COMMITTED;
+
 public class Databases {
   private Databases() {
   }
@@ -52,6 +54,10 @@ public class Databases {
     }
   }
 
+  public static <T> T transaction(Function<Connection, T> function, String jdbcUrl) {
+    return transaction(function, jdbcUrl, TRANSACTION_READ_COMMITTED);
+  }
+
   public static <T> T xaTransaction(int isolationLevel, XaFunction<T>... actions) {
     UserTransaction ut = new UserTransactionImp();
     try {
@@ -74,7 +80,6 @@ public class Databases {
     }
   }
 
-
   public static void transaction(Consumer<Connection> consumer, String jdbcUrl, int isolationLevel) {
     Connection connection = null;
     try {
@@ -95,6 +100,10 @@ public class Databases {
       }
       throw new RuntimeException(e);
     }
+  }
+
+  public static void transaction(Consumer<Connection> consumer, String jdbcUrl) {
+    transaction(consumer, jdbcUrl, TRANSACTION_READ_COMMITTED);
   }
 
   public static void xaTransaction(int isolationLevel, XaConsumer... actions) {
