@@ -1,7 +1,7 @@
 package guru.qa.niffler.data.dao.impl;
 
 import guru.qa.niffler.data.dao.AuthAuthorityDao;
-import guru.qa.niffler.data.entity.auth.AuthAuthorityEntity;
+import guru.qa.niffler.data.entity.auth.AuthorityEntity;
 
 import java.sql.*;
 import java.util.UUID;
@@ -15,7 +15,7 @@ public class AuthAuthorityDaoJdbc implements AuthAuthorityDao {
   }
 
   @Override
-  public AuthAuthorityEntity create(AuthAuthorityEntity authAuthority) {
+  public AuthorityEntity create(AuthorityEntity authAuthority) {
     try (PreparedStatement ps = connection.prepareStatement(
       "INSERT into authority (user_id, authority) VALUES (?, ?)",
       Statement.RETURN_GENERATED_KEYS
