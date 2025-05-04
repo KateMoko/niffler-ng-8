@@ -1,8 +1,5 @@
 package guru.qa.niffler.data.dao.impl;
 
-import guru.qa.niffler.config.Config;
-import guru.qa.niffler.data.Databases;
-import guru.qa.niffler.data.dao.CategoryDao;
 import guru.qa.niffler.data.dao.SpendDao;
 import guru.qa.niffler.data.entity.spend.CategoryEntity;
 import guru.qa.niffler.data.entity.spend.SpendEntity;
@@ -20,9 +17,6 @@ import java.util.UUID;
 
 public class SpendDaoJdbc implements SpendDao {
 
-  private static final Config CFG = Config.getInstance();
-  private final CategoryDao categoryDao = new CategoryDaoJdbc();
-
   private final Connection connection;
 
   public SpendDaoJdbc(Connection connection) {
@@ -32,9 +26,9 @@ public class SpendDaoJdbc implements SpendDao {
   @Override
   public SpendEntity create(SpendEntity spend) {
     try (PreparedStatement ps = connection.prepareStatement(
-        "INSERT INTO spend (username, spend_date, currency, amount, description, category_id) " +
-            "VALUES ( ?, ?, ?, ?, ?, ?)",
-        Statement.RETURN_GENERATED_KEYS
+      "INSERT INTO spend (username, spend_date, currency, amount, description, category_id) " +
+        "VALUES ( ?, ?, ?, ?, ?, ?)",
+      Statement.RETURN_GENERATED_KEYS
     )) {
       ps.setString(1, spend.getUsername());
       ps.setDate(2, spend.getSpendDate());
@@ -62,29 +56,28 @@ public class SpendDaoJdbc implements SpendDao {
 
   @Override
   public Optional<SpendEntity> findSpendById(UUID id) {
-    try (Connection connection = Databases.connection(CFG.spendJdbcUrl())) {
-      try (PreparedStatement ps = connection.prepareStatement(
-        "SELECT * FROM spend WHERE id = ?"
-      )) {
-        ps.setObject(1, id);
+    try (PreparedStatement ps = connection.prepareStatement(
+      "SELECT * FROM spend WHERE id = ?"
+    )) {
+      ps.setObject(1, id);
 
-        ps.execute();
+      ps.execute();
 
-        try (ResultSet rs = ps.getResultSet()) {
-          if (rs.next()) {
-            SpendEntity se = new SpendEntity();
-            se.setId(rs.getObject("id", UUID.class));
-            se.setUsername(rs.getString("username"));
-            se.setCurrency(CurrencyValues.valueOf(rs.getString("currency")));
-            se.setSpendDate(rs.getDate("spend_date"));
-            se.setAmount(rs.getDouble("amount"));
-            se.setDescription(rs.getString("description"));
-            CategoryEntity category = categoryDao.findCategoryById(rs.getObject("category_id", UUID.class)).orElse(null);
-            se.setCategory(category);
-            return Optional.of(se);
-          } else {
-            return Optional.empty();
-          }
+      try (ResultSet rs = ps.getResultSet()) {
+        if (rs.next()) {
+          SpendEntity se = new SpendEntity();
+          se.setId(rs.getObject("id", UUID.class));
+          se.setUsername(rs.getString("username"));
+          se.setCurrency(CurrencyValues.valueOf(rs.getString("currency")));
+          se.setSpendDate(rs.getDate("spend_date"));
+          se.setAmount(rs.getDouble("amount"));
+          se.setDescription(rs.getString("description"));
+          CategoryEntity category = new CategoryEntity();
+          category.setId(rs.getObject("category_id", UUID.class));
+          se.setCategory(category);
+          return Optional.of(se);
+        } else {
+          return Optional.empty();
         }
       }
     } catch (SQLException e) {
@@ -94,31 +87,30 @@ public class SpendDaoJdbc implements SpendDao {
 
   @Override
   public List<SpendEntity> findAllByUsername(String username) {
-    try (Connection connection = Databases.connection(CFG.spendJdbcUrl())) {
-      try (PreparedStatement ps = connection.prepareStatement(
-        "SELECT * FROM spend WHERE username = ?"
-      )) {
-        ps.setObject(1, username);
+    try (PreparedStatement ps = connection.prepareStatement(
+      "SELECT * FROM spend WHERE username = ?"
+    )) {
+      ps.setObject(1, username);
 
-        ps.execute();
+      ps.execute();
 
-        List<SpendEntity> spendEntities = new ArrayList<>();
-        try (ResultSet rs = ps.getResultSet()) {
-          while (rs.next()) {
-            SpendEntity se = new SpendEntity();
-            se.setId(rs.getObject("id", UUID.class));
-            se.setUsername(rs.getString("username"));
-            se.setCurrency(CurrencyValues.valueOf(rs.getString("currency")));
-            se.setSpendDate(rs.getDate("spend_date"));
-            se.setAmount(rs.getDouble("amount"));
-            se.setDescription(rs.getString("description"));
-            CategoryEntity category = categoryDao.findCategoryById(rs.getObject("category_id", UUID.class)).orElse(null);
-            se.setCategory(category);
-            spendEntities.add(se);
-          }
+      List<SpendEntity> spendEntities = new ArrayList<>();
+      try (ResultSet rs = ps.getResultSet()) {
+        while (rs.next()) {
+          SpendEntity se = new SpendEntity();
+          se.setId(rs.getObject("id", UUID.class));
+          se.setUsername(rs.getString("username"));
+          se.setCurrency(CurrencyValues.valueOf(rs.getString("currency")));
+          se.setSpendDate(rs.getDate("spend_date"));
+          se.setAmount(rs.getDouble("amount"));
+          se.setDescription(rs.getString("description"));
+          CategoryEntity category = new CategoryEntity();
+          category.setId(rs.getObject("category_id", UUID.class));
+          se.setCategory(category);
+          spendEntities.add(se);
         }
-        return spendEntities;
       }
+      return spendEntities;
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -126,17 +118,15 @@ public class SpendDaoJdbc implements SpendDao {
 
   @Override
   public void deleteSpend(SpendEntity spend) {
-    try (Connection connection = Databases.connection(CFG.spendJdbcUrl())) {
-      try (PreparedStatement ps = connection.prepareStatement(
-        "DELETE from spend WHERE id = ?"
-      )) {
-        ps.setObject(1, spend.getId());
+    try (PreparedStatement ps = connection.prepareStatement(
+      "DELETE from spend WHERE id = ?"
+    )) {
+      ps.setObject(1, spend.getId());
 
-        int affectedRows = ps.executeUpdate();
+      int affectedRows = ps.executeUpdate();
 
-        if (affectedRows == 0) {
-          throw new SQLException("No spend found with id: " + spend.getId());
-        }
+      if (affectedRows == 0) {
+        throw new SQLException("No spend found with id: " + spend.getId());
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);

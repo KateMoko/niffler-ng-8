@@ -8,6 +8,8 @@ import guru.qa.niffler.data.entity.spend.SpendEntity;
 import guru.qa.niffler.model.CategoryJson;
 import guru.qa.niffler.model.SpendJson;
 
+import java.sql.Connection;
+
 import static guru.qa.niffler.data.Databases.transaction;
 
 public class SpendDbClient {
@@ -16,24 +18,30 @@ public class SpendDbClient {
 
   public SpendJson createSpend(SpendJson spend) {
     return transaction(connection -> {
-          SpendEntity spendEntity = SpendEntity.fromJson(spend);
-          if (spendEntity.getCategory().getId() == null) {
-            CategoryEntity categoryEntity = new CategoryDaoJdbc(connection)
-                .create(spendEntity.getCategory());
-            spendEntity.setCategory(categoryEntity);
-          }
-          return SpendJson.fromEntity(
-              new SpendDaoJdbc(connection).create(spendEntity)
-          );
-        },
-        CFG.spendJdbcUrl()
+        SpendEntity spendEntity = SpendEntity.fromJson(spend);
+        if (spendEntity.getCategory().getId() == null) {
+          CategoryEntity categoryEntity = new CategoryDaoJdbc(connection)
+            .create(spendEntity.getCategory());
+          spendEntity.setCategory(categoryEntity);
+        }
+        return SpendJson.fromEntity(
+          new SpendDaoJdbc(connection).create(spendEntity)
+        );
+      },
+      CFG.spendJdbcUrl(),
+      Connection.TRANSACTION_SERIALIZABLE
     );
   }
 
   public CategoryJson createCategory(CategoryJson category) {
-    CategoryEntity categoryEntity = CategoryEntity.fromJson(category);
-    return CategoryJson.fromEntity(
-        categoryDao.create(categoryEntity)
+    return transaction(connection -> {
+        CategoryEntity categoryEntity = CategoryEntity.fromJson(category);
+        return CategoryJson.fromEntity(
+          new CategoryDaoJdbc(connection).create(categoryEntity)
+        );
+      },
+      CFG.spendJdbcUrl(),
+      Connection.TRANSACTION_SERIALIZABLE
     );
   }
 }
