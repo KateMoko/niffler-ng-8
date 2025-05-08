@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,9 +28,9 @@ public class AuthUserDaoSpringJdbc implements AuthUserDao {
     KeyHolder kh = new GeneratedKeyHolder();
     jdbcTemplate.update(con -> {
       PreparedStatement ps = con.prepareStatement(
-          "INSERT INTO \"user\" (username, password, enabled, account_non_expired, account_non_locked, credentials_non_expired) " +
-              "VALUES (?,?,?,?,?,?)",
-          Statement.RETURN_GENERATED_KEYS
+        "INSERT INTO \"user\" (username, password, enabled, account_non_expired, account_non_locked, credentials_non_expired) " +
+          "VALUES (?,?,?,?,?,?)",
+        Statement.RETURN_GENERATED_KEYS
       );
       ps.setString(1, user.getUsername());
       ps.setString(2, user.getPassword());
@@ -49,11 +50,20 @@ public class AuthUserDaoSpringJdbc implements AuthUserDao {
   public Optional<AuthUserEntity> findById(UUID id) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     return Optional.ofNullable(
-        jdbcTemplate.queryForObject(
-            "SELECT * FROM \"user\" WHERE id = ?",
-            AuthUserEntityRowMapper.instance,
-            id
-        )
+      jdbcTemplate.queryForObject(
+        "SELECT * FROM \"user\" WHERE id = ?",
+        AuthUserEntityRowMapper.instance,
+        id
+      )
+    );
+  }
+
+  @Override
+  public List<AuthUserEntity> findAll() {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    return jdbcTemplate.query(
+      "SELECT * FROM \"user\"",
+      AuthUserEntityRowMapper.instance
     );
   }
 }
