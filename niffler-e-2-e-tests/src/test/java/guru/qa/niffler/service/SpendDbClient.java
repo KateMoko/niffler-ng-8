@@ -11,10 +11,6 @@ import guru.qa.niffler.data.tpl.JdbcTransactionTemplate;
 import guru.qa.niffler.model.CategoryJson;
 import guru.qa.niffler.model.SpendJson;
 
-import java.sql.Connection;
-
-import static guru.qa.niffler.data.Databases.transaction;
-
 public class SpendDbClient {
 
   private static final Config CFG = Config.getInstance();
@@ -23,32 +19,30 @@ public class SpendDbClient {
   private final SpendDao spendDao = new SpendDaoJdbc();
 
   private final JdbcTransactionTemplate jdbcTxTemplate = new JdbcTransactionTemplate(
-      CFG.spendJdbcUrl()
+    CFG.spendJdbcUrl()
   );
 
   public SpendJson createSpend(SpendJson spend) {
     return jdbcTxTemplate.execute(() -> {
-          SpendEntity spendEntity = SpendEntity.fromJson(spend);
-          if (spendEntity.getCategory().getId() == null) {
-            CategoryEntity categoryEntity = categoryDao.create(spendEntity.getCategory());
-            spendEntity.setCategory(categoryEntity);
-          }
-          return SpendJson.fromEntity(
-              spendDao.create(spendEntity)
-          );
+        SpendEntity spendEntity = SpendEntity.fromJson(spend);
+        if (spendEntity.getCategory().getId() == null) {
+          CategoryEntity categoryEntity = categoryDao.create(spendEntity.getCategory());
+          spendEntity.setCategory(categoryEntity);
         }
+        return SpendJson.fromEntity(
+          spendDao.create(spendEntity)
+        );
+      }
     );
   }
 
-//  public CategoryJson createCategory(CategoryJson category) {
-//    return transaction(connection -> {
-//        CategoryEntity categoryEntity = CategoryEntity.fromJson(category);
-//        return CategoryJson.fromEntity(
-//          new CategoryDaoJdbc(connection).create(categoryEntity)
-//        );
-//      },
-//      CFG.spendJdbcUrl(),
-//      Connection.TRANSACTION_SERIALIZABLE
-//    );
-//  }
+  public CategoryJson createCategory(CategoryJson category) {
+    return jdbcTxTemplate.execute(() -> {
+        CategoryEntity categoryEntity = CategoryEntity.fromJson(category);
+        return CategoryJson.fromEntity(
+          categoryDao.create(categoryEntity)
+        );
+      }
+    );
+  }
 }
