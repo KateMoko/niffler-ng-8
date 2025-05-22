@@ -36,21 +36,102 @@ public class JdbcTest {
     System.out.println(spend);
   }
 
+  // Создание пользователя через JDBC без транзакций
   @Test
-  void springJdbcTest() {
+  void createUserJdbcTest() {
     UsersDbClient usersDbClient = new UsersDbClient();
-    UserJson user = usersDbClient.createUser(
-        new UserJson(
-            null,
-            "valentin-4",
-            null,
-            null,
-            null,
-            CurrencyValues.RUB,
-            null,
-            null,
-            null
-        )
+    UserJson user = usersDbClient.createUserJdbc(
+      new UserJson(
+        null,
+        "user-jdbc-6",
+        null,
+        null,
+        null,
+        CurrencyValues.RUB,
+        null,
+        null,
+        null
+      )
+    );
+    System.out.println(user);
+  }
+
+  // Создание пользователя через JDBC с транзакциями
+  @Test
+  void xaCreateUserJdbcTest() {
+    UsersDbClient usersDbClient = new UsersDbClient();
+    UserJson user = usersDbClient.xaCreateUserJdbc(
+      new UserJson(
+        null,
+        "user-xa-jdbc-1",
+        null,
+        null,
+        null,
+        CurrencyValues.RUB,
+        null,
+        null,
+        null
+      )
+    );
+    System.out.println(user);
+  }
+
+  // Создание пользователя через Spring JDBC без транзакций
+  @Test
+  void createUserSpringJdbcTest() {
+    UsersDbClient usersDbClient = new UsersDbClient();
+    UserJson user = usersDbClient.createUserSpringJdbc(
+      new UserJson(
+        null,
+        "user-spring-jdbc-1",
+        null,
+        null,
+        null,
+        CurrencyValues.RUB,
+        null,
+        null,
+        null
+      )
+    );
+    System.out.println(user);
+  }
+
+  // Создание пользователя через Spring JDBC с транзакциями
+  @Test
+  void xaCreateUserSpringJdbcTest() {
+    UsersDbClient usersDbClient = new UsersDbClient();
+    UserJson user = usersDbClient.xaCreateUserSpringJdbc(
+      new UserJson(
+        null,
+        "user-xa-spring-jdbc-1",
+        null,
+        null,
+        null,
+        CurrencyValues.RUB,
+        null,
+        null,
+        null
+      )
+    );
+    System.out.println(user);
+  }
+
+  // Создание пользователя через Spring JDBC с ChainedTransactionManager
+  @Test
+  void createUserChainedTxManagerTest() {
+    UsersDbClient usersDbClient = new UsersDbClient();
+    UserJson user = usersDbClient.createUserChainedTxManager(
+      new UserJson(
+        null,
+        "user-chained-tx-manager-2",
+        null,
+        null,
+        null,
+        CurrencyValues.RUB,
+        null,
+        null,
+        null
+      )
     );
     System.out.println(user);
   }
