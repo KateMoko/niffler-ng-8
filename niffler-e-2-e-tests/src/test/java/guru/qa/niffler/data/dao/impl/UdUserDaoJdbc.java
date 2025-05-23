@@ -23,8 +23,9 @@ public class UdUserDaoJdbc implements UdUserDao {
   @Override
   public UserEntity create(UserEntity user) {
     try (PreparedStatement ps = holder(CFG.userdataJdbcUrl()).connection().prepareStatement(
-        "INSERT INTO \"user\" (username, currency) VALUES (?, ?)",
-        PreparedStatement.RETURN_GENERATED_KEYS)) {
+      "INSERT INTO \"user\" (username, currency, firstname, surname, photo, photo_small, full_name) " +
+        "VALUES (?,?,?,?,?,?,?)",
+      PreparedStatement.RETURN_GENERATED_KEYS)) {
       ps.setString(1, user.getUsername());
       ps.setString(2, user.getCurrency().name());
       ps.setString(3, user.getFirstname());

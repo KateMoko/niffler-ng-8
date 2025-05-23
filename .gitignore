@@ -42,3 +42,4 @@ out/
 ### gRPC generated files ###
 /niffler-grpc-common/src/generated/**
 /niffler-e-2-e-tests/tmlog1.log
+/niffler-e-2-e-tests/tmlog6.log
